@@ -1,0 +1,17 @@
+name: Purge Cloudflare cache on Pages deploy
+on:
+  workflow_run:
+    workflows: ["Pages build and deployment"]
+    types: [completed]
+
+jobs:
+  purge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge cache cdn.virexengroup.com
+        run: |
+          curl -sX POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"files":["https://cdn.virexengroup.com/*"]}'
